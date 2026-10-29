@@ -13,9 +13,10 @@ function makeContainer(scrollTop: number, clientHeight: number) {
   return { container: container as unknown as HTMLElement, scrollTo }
 }
 
-function makeElement(top: number, bottom: number): Element {
+function makeElement(top: number, bottom: number, lineageChildren: Element | null = null): Element {
   return {
-    getBoundingClientRect: () => ({ top, bottom }) as DOMRect
+    getBoundingClientRect: () => ({ top, bottom }) as DOMRect,
+    querySelector: () => lineageChildren
   } as unknown as Element
 }
 
@@ -35,5 +36,24 @@ describe('revealElementInScrollContainer', () => {
     expect(revealed).toBe(true)
     expect(scrollTo).toHaveBeenCalledWith({ top: 387, behavior: 'smooth' })
     expect(onScrollIssued).toHaveBeenCalledWith(387)
+  })
+
+  it('ignores expanded child workspaces when revealing a visible parent card', () => {
+    const { container, scrollTo } = makeContainer(0, 673)
+
+    // Parent card at 200-320 with 215 expanded children rendered inside it.
+    const parent = makeElement(200, 12_000, makeElement(320, 12_000))
+
+    expect(revealElementInScrollContainer(container, parent, 'auto')).toBe(true)
+    expect(scrollTo).not.toHaveBeenCalled()
+  })
+
+  it('scrolls only to the parent card, not its children, when the card is below the fold', () => {
+    const { container, scrollTo } = makeContainer(0, 673)
+    const parent = makeElement(1005, 13_000, makeElement(1060, 13_000))
+
+    revealElementInScrollContainer(container, parent, 'auto')
+
+    expect(scrollTo).toHaveBeenCalledWith({ top: 387, behavior: 'auto' })
   })
 })
