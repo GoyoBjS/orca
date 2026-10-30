@@ -121,7 +121,8 @@ describe('worktree keyboard cycling with a resolved active host', () => {
 
     expect(activateAndRevealWorktree).toHaveBeenCalledWith('c', {
       navigationIntent: 'user-open',
-      revealInSidebar: false
+      revealInSidebar: false,
+      executionHostId: 'local'
     })
   })
 
@@ -132,7 +133,8 @@ describe('worktree keyboard cycling with a resolved active host', () => {
 
     expect(activateAndRevealWorktree).toHaveBeenCalledWith('a', {
       navigationIntent: 'user-open',
-      revealInSidebar: false
+      revealInSidebar: false,
+      executionHostId: 'local'
     })
   })
 
@@ -143,7 +145,8 @@ describe('worktree keyboard cycling with a resolved active host', () => {
 
     expect(activateAndRevealWorktree).toHaveBeenCalledWith('c', {
       navigationIntent: 'user-open',
-      revealInSidebar: false
+      revealInSidebar: false,
+      executionHostId: 'local'
     })
   })
 })
@@ -162,7 +165,8 @@ describe('workspace keyboard cycling after closing the final tab', () => {
 
     expect(activateAndRevealWorktree).toHaveBeenLastCalledWith(expected, {
       navigationIntent: 'user-open',
-      revealInSidebar: false
+      revealInSidebar: false,
+      executionHostId: 'local'
     })
   })
 
@@ -191,7 +195,8 @@ describe('workspace keyboard cycling after closing the final tab', () => {
 
     expect(activateAndRevealWorktree).toHaveBeenLastCalledWith('c', {
       navigationIntent: 'user-open',
-      revealInSidebar: false
+      revealInSidebar: false,
+      executionHostId: 'local'
     })
   })
 
@@ -204,7 +209,8 @@ describe('workspace keyboard cycling after closing the final tab', () => {
 
     expect(activateAndRevealWorktree).toHaveBeenLastCalledWith('a', {
       navigationIntent: 'user-open',
-      revealInSidebar: false
+      revealInSidebar: false,
+      executionHostId: 'local'
     })
   })
 })

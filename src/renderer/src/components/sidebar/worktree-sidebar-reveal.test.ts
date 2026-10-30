@@ -1,9 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import {
-  getWorktreeLineageChildrenId,
-  revealElementInScrollContainer
-} from './worktree-sidebar-reveal'
+import { revealElementInScrollContainer } from './worktree-sidebar-reveal'
 
 function makeContainer(scrollTop: number, clientHeight: number) {
   const container = document.createElement('div')
@@ -19,16 +16,20 @@ function makeContainer(scrollTop: number, clientHeight: number) {
 function makeElement(top: number, bottom: number, lineageChildren: Element | null = null): Element {
   const element = document.createElement('div')
   element.id = 'target-option'
+  element.setAttribute('data-worktree-card-surface', '')
   element.getBoundingClientRect = () => new DOMRect(0, top, 300, bottom - top)
   if (lineageChildren) {
-    lineageChildren.id = getWorktreeLineageChildrenId(element.id)
+    lineageChildren.setAttribute('data-worktree-lineage-children', '')
     element.append(lineageChildren)
   }
   document.body.firstElementChild?.append(element)
   return element
 }
 
-afterEach(() => document.body.replaceChildren())
+afterEach(() => {
+  document.body.replaceChildren()
+  vi.restoreAllMocks()
+})
 
 describe('revealElementInScrollContainer', () => {
   it('reports the scroll target it issues so callers can guard the animation', () => {
@@ -66,4 +67,36 @@ describe('revealElementInScrollContainer', () => {
 
     expect(scrollTo).toHaveBeenCalledWith({ top: 387, behavior: 'auto' })
   })
+})
+
+it('does not treat another valid option id as a leaf boundary', () => {
+  const { container, scrollTo } = makeContainer(0, 673)
+  const target = makeElement(1005, 1060)
+  target.id = 'worktree-list-option-%2Fworktrees%2Ffeature'
+  const sibling = makeElement(200, 320)
+  sibling.id = `${target.id}-lineage-children`
+  revealElementInScrollContainer(container, target, 'auto')
+  expect(scrollTo).toHaveBeenCalledWith({ top: 387, behavior: 'auto' })
+})
+
+it('keeps generic rows whole and leaves an incomplete card for bounded completion', () => {
+  const { container, scrollTo } = makeContainer(0, 673)
+  const target = makeElement(1005, 1060)
+  target.removeAttribute('data-worktree-card-surface')
+  expect(revealElementInScrollContainer(container, target, 'auto')).toBe(true)
+  target.setAttribute('data-worktree-id', 'known-card')
+  expect(revealElementInScrollContainer(container, target, 'auto')).toBe(false)
+  expect(scrollTo).toHaveBeenCalledTimes(1)
+})
+
+it('preserves sticky upward clearance and reduced-motion scroll notification', () => {
+  const { container, scrollTo } = makeContainer(400, 673)
+  const target = makeElement(10, 65)
+  const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+  Object.defineProperty(media, 'matches', { value: true })
+  vi.spyOn(window, 'matchMedia').mockReturnValue(media)
+  const issued = vi.fn()
+  expect(revealElementInScrollContainer(container, target, 'smooth', issued)).toBe(true)
+  expect(scrollTo).toHaveBeenCalledWith({ top: 376, behavior: 'auto' })
+  expect(issued).toHaveBeenCalledWith(376)
 })

@@ -19,22 +19,38 @@ function getElementScrollBounds(container: HTMLElement, element: Element): Sideb
   }
 }
 
-export function getWorktreeLineageChildrenId(optionId: string): string {
-  return `${optionId}-lineage-children`
-}
-
-// Expanded child workspaces render inside the parent's option element, so its
-// full rect can be thousands of pixels tall; only the parent's own card counts.
-function getRevealTargetBounds(container: HTMLElement, element: Element): SidebarRevealBounds {
+function getRevealTargetBounds(
+  container: HTMLElement,
+  element: Element
+): SidebarRevealBounds | null {
   const bounds = getElementScrollBounds(container, element)
-  const lineageChildren = element.id
-    ? element.ownerDocument.getElementById(getWorktreeLineageChildrenId(element.id))
-    : null
-  if (!lineageChildren) {
+  if (
+    !element.hasAttribute('data-worktree-id') &&
+    !element.hasAttribute('data-worktree-card-surface')
+  ) {
     return bounds
   }
-  const childrenStart = getElementScrollBounds(container, lineageChildren).start
-  return { start: bounds.start, end: Math.min(bounds.end, childrenStart) }
+  const first = element.firstElementChild
+  const scope = first?.hasAttribute('data-worktree-context-menu-scope')
+    ? first
+    : first?.firstElementChild
+  const surface = element.hasAttribute('data-worktree-card-surface')
+    ? element
+    : first?.hasAttribute('data-worktree-card-surface')
+      ? first
+      : scope?.hasAttribute('data-worktree-context-menu-scope')
+        ? scope.firstElementChild
+        : null
+  if (!surface?.hasAttribute('data-worktree-card-surface')) {
+    return null
+  }
+  const boundary = surface.lastElementChild
+  return boundary?.hasAttribute('data-worktree-lineage-children')
+    ? {
+        start: bounds.start,
+        end: Math.min(bounds.end, getElementScrollBounds(container, boundary).start)
+      }
+    : bounds
 }
 
 export function getScrollTopToRevealBounds(
@@ -64,9 +80,13 @@ export function revealElementInScrollContainer(
   if (!container.contains(element)) {
     return false
   }
+  const bounds = getRevealTargetBounds(container, element)
+  if (!bounds) {
+    return false
+  }
   const nextScrollTop = getScrollTopToRevealBounds(
     container,
-    getRevealTargetBounds(container, element),
+    bounds,
     WORKTREE_SIDEBAR_REVEAL_TOP_INSET
   )
   if (nextScrollTop === null) {
