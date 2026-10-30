@@ -1,24 +1,34 @@
-import { describe, expect, it, vi } from 'vitest'
-import { revealElementInScrollContainer } from './worktree-sidebar-reveal'
+// @vitest-environment happy-dom
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  getWorktreeLineageChildrenId,
+  revealElementInScrollContainer
+} from './worktree-sidebar-reveal'
 
 function makeContainer(scrollTop: number, clientHeight: number) {
+  const container = document.createElement('div')
+  Object.defineProperty(container, 'clientHeight', { value: clientHeight })
+  container.scrollTop = scrollTop
+  container.getBoundingClientRect = () => new DOMRect(0, 0, 300, clientHeight)
   const scrollTo = vi.fn()
-  const container = {
-    clientHeight,
-    scrollTop,
-    contains: () => true,
-    getBoundingClientRect: () => ({ top: 0, bottom: clientHeight }) as DOMRect,
-    scrollTo
-  }
-  return { container: container as unknown as HTMLElement, scrollTo }
+  container.scrollTo = scrollTo
+  document.body.append(container)
+  return { container, scrollTo }
 }
 
 function makeElement(top: number, bottom: number, lineageChildren: Element | null = null): Element {
-  return {
-    getBoundingClientRect: () => ({ top, bottom }) as DOMRect,
-    querySelector: () => lineageChildren
-  } as unknown as Element
+  const element = document.createElement('div')
+  element.id = 'target-option'
+  element.getBoundingClientRect = () => new DOMRect(0, top, 300, bottom - top)
+  if (lineageChildren) {
+    lineageChildren.id = getWorktreeLineageChildrenId(element.id)
+    element.append(lineageChildren)
+  }
+  document.body.firstElementChild?.append(element)
+  return element
 }
+
+afterEach(() => document.body.replaceChildren())
 
 describe('revealElementInScrollContainer', () => {
   it('reports the scroll target it issues so callers can guard the animation', () => {

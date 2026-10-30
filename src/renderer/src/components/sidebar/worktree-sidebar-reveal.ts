@@ -19,11 +19,17 @@ function getElementScrollBounds(container: HTMLElement, element: Element): Sideb
   }
 }
 
+export function getWorktreeLineageChildrenId(optionId: string): string {
+  return `${optionId}-lineage-children`
+}
+
 // Expanded child workspaces render inside the parent's option element, so its
 // full rect can be thousands of pixels tall; only the parent's own card counts.
 function getRevealTargetBounds(container: HTMLElement, element: Element): SidebarRevealBounds {
   const bounds = getElementScrollBounds(container, element)
-  const lineageChildren = element.querySelector('[data-worktree-lineage-children]')
+  const lineageChildren = element.id
+    ? element.ownerDocument.getElementById(getWorktreeLineageChildrenId(element.id))
+    : null
   if (!lineageChildren) {
     return bounds
   }

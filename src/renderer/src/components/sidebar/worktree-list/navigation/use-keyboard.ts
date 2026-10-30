@@ -1,7 +1,6 @@
 import { textFieldClaimsActionKey } from '@/lib/file-search-shortcut-policy'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type React from 'react'
-import type { Virtualizer } from '@tanstack/react-virtual'
 import { useAppStore } from '@/store'
 import { activateWorktreeFromSidebar } from '@/lib/sidebar-worktree-activation'
 import { focusRuntimeTerminalSurface } from '@/runtime/mounted-terminal-tab-registry'
@@ -11,13 +10,11 @@ import { getShortcutPlatform } from '@/lib/shortcut-platform'
 import { keybindingMatchesAction } from '../../../../../../shared/keybindings'
 import type { HostSectionRow } from '../../../../../../shared/sidebar-list/host-section-rows'
 import type { PinnedWorktreeDisplayPolicy } from '../../../../../../shared/sidebar-list/row-types'
-import type { RenderRow } from '../listing/render-row'
 import type { Worktree } from '../../../../../../shared/worktree/types'
 import {
   resolveCycledWorkspaceRow,
   type LastActiveCycleWorkspace
 } from '../../worktree-keyboard-cycle'
-import { findPreferredRenderRowIndexForWorktreeIdentity } from './render-row-lookup'
 import { addAppKeyListener, removeAppKeyListener } from '@/lib/app-keyboard-router'
 import { useWorkspaceNeighborPrewarm } from './use-neighbor-prewarm'
 
@@ -43,22 +40,18 @@ export function withKeyboardPreview<
 
 export function useWorktreeListKeyboardNavigation(args: {
   rows: HostSectionRow[]
-  renderRows: RenderRow[]
   activeWorktreeId: string | null
   activeWorkspaceExecutionHostId: ExecutionHostId | null
   pinnedDisplayPolicy: PinnedWorktreeDisplayPolicy
-  virtualizer: Virtualizer<HTMLDivElement, HTMLDivElement>
   scrollRef: React.RefObject<HTMLDivElement | null>
   activeModal: string
   markDirectScrollInput: () => void
 }) {
   const {
     rows,
-    renderRows,
     activeWorktreeId,
     activeWorkspaceExecutionHostId,
     pinnedDisplayPolicy,
-    virtualizer,
     scrollRef,
     activeModal,
     markDirectScrollInput
@@ -164,21 +157,15 @@ export function useWorktreeListKeyboardNavigation(args: {
         void activateWorktreeFromSidebar(nextWorktree.id, nextWorktree.hostId)
       }
 
-      const rowIndex = findPreferredRenderRowIndexForWorktreeIdentity(
-        renderRows,
-        nextWorktree,
-        pinnedDisplayPolicy
-      )
-      if (rowIndex !== -1) {
-        virtualizer.scrollToIndex(rowIndex, { align: 'auto' })
-      }
+      useAppStore.getState().revealWorktreeInSidebar(nextWorktree.id, {
+        behavior: 'auto',
+        executionHostId: nextWorktree.hostId ?? 'local'
+      })
     },
     [
       rows,
-      renderRows,
       activeWorktreeId,
       activeWorkspaceExecutionHostId,
-      virtualizer,
       pinnedDisplayPolicy,
       clearPreviewCommitTimer,
       commitPreview,

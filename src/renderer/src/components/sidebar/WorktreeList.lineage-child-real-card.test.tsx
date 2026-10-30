@@ -22,6 +22,8 @@ import {
   WORKTREE_CARD_SURFACE_MARGIN
 } from './worktree-list/rows/indentation'
 
+import { revealMountedWorktreeElement } from './worktree-list/navigation/mounted-row-reveal'
+
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 const mockStore = vi.hoisted(() => ({
@@ -468,6 +470,28 @@ describe('WorktreeList real child WorktreeCard integration', () => {
       row: grandchildRow!,
       surface: grandchildSurface!
     })
+  })
+
+  it('reveals the own boundary of a real nested card through the mounted-option entrypoint', async () => {
+    setLineageState({ includeGrandchild: true })
+    const container = await renderWorktreeList()
+    const parent = container.querySelector<HTMLElement>(
+      '[role="option"][data-worktree-id="parent"]'
+    )!
+    const child = container.querySelector<HTMLElement>('[role="option"][data-worktree-id="child"]')!
+    const boundaries = container.querySelectorAll<HTMLElement>('[data-worktree-lineage-children]')
+    Object.defineProperty(container, 'clientHeight', { value: 673 })
+    container.getBoundingClientRect = () => new DOMRect(0, 0, 300, 673)
+    parent.getBoundingClientRect = () => new DOMRect(0, 200, 300, 11800)
+    child.getBoundingClientRect = () => new DOMRect(0, 900, 300, 11100)
+    boundaries[0]!.getBoundingClientRect = () => new DOMRect(0, 320, 300, 11680)
+    boundaries[1]!.getBoundingClientRect = () => new DOMRect(0, 1020, 300, 10980)
+    container.scrollTo = vi.fn()
+
+    expect(revealMountedWorktreeElement(container, 'parent', 'auto', parent.id)).toBe(parent)
+    expect(container.scrollTo).not.toHaveBeenCalled()
+    expect(revealMountedWorktreeElement(container, 'child', 'auto', child.id)).toBe(child)
+    expect(container.scrollTo).toHaveBeenCalledWith({ top: 347, behavior: 'auto' })
   })
 
   it('double-clicking a nested child opens edit metadata for the child only', async () => {

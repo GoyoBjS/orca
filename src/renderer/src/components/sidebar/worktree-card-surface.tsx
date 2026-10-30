@@ -7,6 +7,8 @@ import WorktreeContextMenu from './WorktreeContextMenu'
 import { useIsSleepingWorktree } from './use-worktree-sleep-state'
 import { WorktreeCardParentContent } from './worktree-card-parent-content'
 import { buildWorktreeCardPresentation } from './worktree-card-presentation'
+import { getWorktreeOptionId } from './worktree-list/rows/option-dom'
+import { getWorktreeLineageChildrenId } from './worktree-sidebar-reveal'
 import type { WorktreeCardController } from './use-worktree-card-controller'
 
 export function WorktreeCardSurface({ card }: { card: WorktreeCardController }): React.JSX.Element {
@@ -110,6 +112,11 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
       {lineageChildren ? (
         <div
           className={cn('space-y-1', newCardStyle ? 'mt-1.5' : 'mt-3')}
+          id={
+            card.activationRowKey
+              ? getWorktreeLineageChildrenId(getWorktreeOptionId(card.activationRowKey))
+              : undefined
+          }
           data-worktree-lineage-children=""
           style={lineageChildrenStyle}
         >
