@@ -92,12 +92,12 @@ async function mountAgents(worktreeId: string): Promise<HTMLElement> {
   await act(async () => {
     root.render(
       <div data-worktree-sidebar>
-        <div role="option" data-worktree-id={worktreeId}>
+        <div role="option" aria-selected={false} data-worktree-id={worktreeId}>
           <div data-worktree-context-menu-scope>
             <div data-worktree-card-surface>
               <WorktreeCardAgents worktreeId={worktreeId} />
               <div data-worktree-lineage-children>
-                <div role="option" data-worktree-id="child" />
+                <div role="option" aria-selected={false} data-worktree-id="child" />
               </div>
             </div>
           </div>

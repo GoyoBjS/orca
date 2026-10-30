@@ -187,6 +187,7 @@ function Probe() {
       key={item.rowKey}
       id={getWorktreeOptionId(item.rowKey)}
       role="option"
+      aria-selected={false}
       data-worktree-id={item.worktree.id}
       data-worktree-row-key={item.rowKey}
       ref={(node) => {
