@@ -449,23 +449,32 @@ it('retires an old header, rejects stale preprocessing, and gives a same-key req
   expect(persist).not.toHaveBeenCalled()
   expect(filter).not.toHaveBeenCalled()
   expect(list.scrollTop).toBe(347)
-  initiallyMounted = false
   mountOnStage = false
   hideTarget = true
-  act(() => request())
-  for (let i = 0; i < 8; i++) {
-    frame()
+  const stage = vi.spyOn(pendingArgs.virtualizer, 'scrollToIndex')
+  for (const attempts of [8, 2]) {
+    const previous = store.getState().pendingRevealWorktree
+    act(() => request(child.rowKey))
+    const current = store.getState().pendingRevealWorktree
+    expect(current).not.toBe(previous)
+    stage.mockClear()
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      if (attempt > 1) {
+        frame() // Retry tick schedules the next reveal frame without staging.
+        expect(stage).toHaveBeenCalledTimes(attempt - 1)
+      }
+      frame()
+      expect(stage).toHaveBeenCalledTimes(attempt)
+      expect(store.getState().pendingRevealWorktree).toBe(current)
+    }
   }
-  act(() => request())
-  for (let i = 0; i < 8; i++) {
-    frame()
-  }
-  expect(store.getState().pendingRevealWorktree).not.toBeNull()
+  expect(list.scrollTop).toBeGreaterThan(10000)
   hideTarget = false
   act(() => root.render(<Probe />))
   drain()
   expect(store.getState().pendingRevealWorktree).toBeNull()
-  expectVisible(parent, 320)
+  expectVisible(child, 1020)
+  expect(list.scrollTop).toBe(866)
   expect(toastError).not.toHaveBeenCalled()
 })
 
