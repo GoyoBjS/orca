@@ -587,15 +587,17 @@ it.each([false, true])(
 
 it.each([10, 100])('visits zero hidden records in the real key/reveal chain with N=%s', (size) => {
   let visits = 0
-  const counted = <T,>(values: T[]): T[] =>
-    new Proxy(values, {
-      get(target, key, receiver) {
-        if (typeof key === 'string' && /^\d+$/.test(key)) {
+  const counted = <T,>(values: T[]): T[] => {
+    values.forEach((value, index) => {
+      Object.defineProperty(values, index, {
+        get() {
           visits++
+          return value
         }
-        return Reflect.get(target, key, receiver)
-      }
+      })
     })
+    return values
+  }
   worktrees = counted(Array.from({ length: size }, (_, i) => ({ ...worktree, id: `hidden${i}` })))
   folderWorkspaces = counted(
     Array.from({ length: size }, (_, i) => ({
