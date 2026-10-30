@@ -11,6 +11,7 @@ import {
   folderWorkspaceToWorktree,
   getFolderWorkspaceHostIdentity
 } from '../../../../../../shared/folder-workspace-worktree'
+import type { FolderWorkspace } from '../../../../../../shared/folder-workspace-types'
 import type { HostSectionRow } from '../../../../../../shared/sidebar-list/host-section-rows'
 import { useSidebarRevealHighlight } from './use-reveal-highlight'
 import { useSidebarRevealRequests } from './use-reveal-requests'
@@ -554,7 +555,7 @@ it.each([false, true])(
       createdAt: 0,
       updatedAt: 0
     }
-    const twins = [folder, { ...folder, executionHostId: 'ssh:other' }]
+    const twins: FolderWorkspace[] = [folder, { ...folder, executionHostId: 'ssh:other' }]
     rows = twins.map((folderWorkspace) => ({
       type: 'folder-workspace',
       key: 'render-model-only',

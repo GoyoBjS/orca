@@ -2,6 +2,7 @@ import type { WorktreeOccurrencePlan } from '../../../../../../shared/worktree-o
 import type React from 'react'
 import type { Virtualizer } from '@tanstack/react-virtual'
 import type { AppState } from '@/store/types'
+import { selectFolderWorkspaces } from '@/store/workspace-record-selectors'
 import type { PendingSidebarRowReveal, PendingSidebarWorktreeReveal } from '@/store/slices/ui'
 import type { FolderWorkspace } from '../../../../../../shared/folder-workspace-types'
 import type { ProjectGroup } from '../../../../../../shared/project-group-types'
@@ -141,7 +142,7 @@ export function resolvePendingWorktreeRevealTarget(
         targetWorktreeStillExists: sidebarWorkspaceStillExists(
           request.worktreeId,
           args.worktrees,
-          args.folderWorkspaces,
+          selectFolderWorkspaces(args),
           request.executionHostId
         )
       })
